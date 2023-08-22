@@ -28,6 +28,7 @@
           var: mpio_ver_el_7
       - name: View network configuration (IP address, subnet mask, gateway)
         shell: |
+          echo "============================="
           echo "===Interface configuration==="
           ifconfig
           echo "============================="
@@ -50,41 +51,44 @@
           var: proc_info
       - name: Disk Info
         shell: |
-          echo "==Disk partitions=="
+          echo "===================="
+          echo "# Disk partitions  #"
           df -h
-          echo "============================="
-          echo "===View disk and partition information==="
+          echo "=======================================
+          echo "# View disk and partition information #"
           lsblk
-          echo "============================="
-          echo ==View RAID information==
+          echo "======================================="
+          echo "# View RAID information #"
           cat /proc/mdstat
-          echo "============================="
-          echo "==View SCSI/SAS controller information=="
+          echo "========================="
+          echo "# View SCSI/SAS controller information #"
           lsscsi
-          echo "============================="
+          echo "========================================"
         register: diskinfo
       - debug:
           var: diskinfo
       - name: Collect system information
         shell: |
-          echo "==uname=="
+          echo "=========="
+          echo "# uname #"
           uname -a
-          echo "============================="
-          echo "Detailed system information"
+          echo "=========="
+          echo "# Detailed system information #"
           cat /etc/os-release
-          echo "============================="
-          echo "==View information about PCIe cards=="
+          echo "==============================="
+          echo "# View information about PCIe cards #"
           lspci
-          echo "============================="
+          echo "====================================="
         register: sysinfo
       - debug:
           var: sysinfo
       - name: CPU / MEM Info
         shell: |
-          echo "==View CPU information=="
+          echo "========================"
+          echo "# View CPU information #"
           lscpu
-          echo "============================="
-          echo "==View current memory usage=="
+          echo "========================"
+          echo "# View current memory usage #"
           free -h
           echo "============================="
         register: cpu_mem_info
@@ -92,34 +96,42 @@
           var: cpu_mem_info
       - name: Services status
         shell: |
-          echo "==Show all apps/services running (RHEL 5/6)=="
+          echo "============================================="
+          echo "# Show all apps/services running (RHEL 5/6) #"
           service --status-all
-          echo "============================="
-          echo "==Show all apps/services running (RHEL 7/8)=="
+          echo "============================================="
+          echo "# Show all apps/services running (RHEL 7/8) #"
           systemctl list-unit-files
-          echo "==Show all apps/services running (RHEL 8)=="
+          echo "============================================="
+          echo "# Show all apps/services running (RHEL 8) #"
           sudo systemctl list-units --type=service
-          echo "============================="
+          echo "============================================="
         register: svcs
       - debug:
           var: svcs
       - name: "Show installed applications/packages"
-        command: rpm -qa
+        shell: |
+          echo "=========================================="
+          echo "# Show installed applications/packages #"
+          rpm -qa
+          echo "============================="
         register: pkgs_info
       - debug:
           var: pkgs_info
-      - name: save outputs to local directory
+      - name: Save outputs to local directory
         copy:
-          content: "{{ item.stdout_lines }}"
-          dest: "/oxxo/{{ item }}.txt"
+          content: "{{ item.output.stdout }}"
+          dest: "/oxxo/{{inventory_hostname}}/{{ item.name }}.txt"
+        when: item.output.stdout is defined
         with_items:
-          - "{{mpio_ver_el_5_6}}"
-          - "{{mpio_ver_el_7}}"
-          - "{{networking_info}}"
-          - "{{proc_info}}"
-          - "{{diskinfo}}"
-          - "{{sysinfo}}"
-          - "{{cpu_mem_info}}"
-          - "{{svcs}}"
-          - "{{pkgs_info}}"
+          - { name: mpio_ver_el_5_6 , output: "{{mpio_ver_el_5_6}}" }
+          - { name: mpio_ver_el_7 , output: "{{mpio_ver_el_7}}" }
+          - { name: networking_info , output: "{{networking_info}}" }
+          - { name: proc_info , output: "{{proc_info}}" }
+          - { name: disk_info , output: "{{diskinfo}}" }
+          - { name: system_info , output: "{{sysinfo}}" }
+          - { name: cpu_mem_info , output: "{{cpu_mem_info}}" }
+          - { name: services_info , output: "{{svcs}}" } 
+          - { name: packages_apps_info , output: "{{pkgs_info}}" }
+        become: false
         delegate_to: localhost
