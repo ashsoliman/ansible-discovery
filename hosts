@@ -1,0 +1,29 @@
+# ANSIBLE HOSTS FILE
+# Located in /etc/ansible by default
+#
+# Examples
+# [windowsservers]
+# (windows server ip1) ansible_user=(User_name1) ansible_password=('PassWord')
+# (windows server ip2) ansible_user=(User_name1) ansible_password=('PassWord')
+# [windowsservers:vars]
+# ansible_connection=ssh
+# ansible_shell_type=cmd
+# [linuxservers]
+# (Linux server ip1)   ansible_ssh_user=(linux1_ssh_user) ansible_ssh_pass=(linux_ssh_password)
+# (Linux server ip2)   ansible_ssh_user=(linux2_ssh_user) ansible_ssh_pass=(linux2_ssh_password)
+
+
+; [windowsservers]
+; 10.0.0.1 ansible_user=lskywalker ansible_password='mypassword'
+; 10.0.0.2 ansible_user=lskywalker ansible_password='mypassword'
+
+; [windowsservers:vars]
+; ansible_connection=ssh
+; ansible_shell_type=cmd
+
+; [linuxservers]
+; 10.0.0.3 ansible_ssh_user=lskywalker ansible_ssh_pass='mypassword'
+; 10.0.0.4 ansible_ssh_user=lskywalker ansible_ssh_pass='mypassword'
+; 10.0.0.5 ansible_ssh_user=lskywalker ansible_ssh_pass='mypassword'
+[all]
+ec2-18-208-197-53.compute-1.amazonaws.com ansible_user=ec2-user ansible_ssh_private_key_file=/oxxo/rhel.pem
