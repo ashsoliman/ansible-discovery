@@ -8,7 +8,7 @@
       #     state: directory
       - name: Create local directory on jumpserver
         file:
-          path: "/oxxo/{{ inventory_hostname }}"
+          path: "/tmp/{{ inventory_hostname }}"
           state: directory
         delegate_to: localhost
         become: false
@@ -121,7 +121,7 @@
       - name: Save outputs to local directory
         copy:
           content: "{{ item.output.stdout }}"
-          dest: "/oxxo/{{inventory_hostname}}/{{ item.name }}.txt"
+          dest: "/tmp/{{inventory_hostname}}/{{ item.name }}.txt"
         when: item.output.stdout is defined
         with_items:
           - { name: mpio_ver_el_5_6 , output: "{{mpio_ver_el_5_6}}" }
