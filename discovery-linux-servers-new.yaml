@@ -28,19 +28,19 @@
           var: mpio_ver_el_7
       - name: View network configuration (IP address, subnet mask, gateway)
         shell: |
-          echo "============================="
-          echo "===Interface configuration==="
+          echo "==========================="
+          echo "# Interface configuration #"
           ifconfig
-          echo "============================="
-          echo "===Netstat ports==="
+          echo "==========================="
+          echo "# Netstat ports #"
           netstat -tuln
-          echo "============================="
-          echo "===IP direction and Routes==="
+          echo "============================"
+          echo "# IP direction and Routes #"
           ip route 
           echo "============================="
-          echo "===Network interfaces and their configurations==="
+          echo "# Network interfaces and their configurations #"
           ip a
-          echo "============================="
+          echo "==============================================="
         register: networking_info
       - debug:
           var: networking_info
@@ -52,9 +52,9 @@
       - name: Disk Info
         shell: |
           echo "===================="
-          echo "# Disk partitions  #"
+          echo "# Disk partitions #"
           df -h
-          echo "=======================================
+          echo "======================================="
           echo "# View disk and partition information #"
           lsblk
           echo "======================================="
