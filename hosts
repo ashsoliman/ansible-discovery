@@ -22,8 +22,7 @@
 ; ansible_shell_type=cmd
 
 ; [linuxservers]
-; 10.0.0.3 ansible_ssh_user=lskywalker ansible_ssh_pass='mypassword'
-; 10.0.0.4 ansible_ssh_user=lskywalker ansible_ssh_pass='mypassword'
-; 10.0.0.5 ansible_ssh_user=lskywalker ansible_ssh_pass='mypassword'
+; 10.0.0.3 ansible_ssh_user=test ansible_ssh_pass='mypassword'
+
 [all]
-ec2-18-208-197-53.compute-1.amazonaws.com ansible_user=ec2-user ansible_ssh_private_key_file=/oxxo/rhel.pem
+#ec2-18-208-197-53.compute-1.amazonaws.com ansible_user=ec2-user ansible_ssh_private_key_file=/tmp/rhel.pem
