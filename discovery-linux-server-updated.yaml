@@ -1,5 +1,5 @@
 ---
-    - hosts: linuxservers
+    - hosts: all
       become: yes
       tasks:
       - name: Create local directory on jumpserver
@@ -17,24 +17,43 @@
           var: mpio_ver_el_5_6
       - name: MPIO Red Hat Enterprise Linux 7 series
         command: systemctl status multipathd
-        when: ansible_facts['distribution_major_version'] == "7"
+        when: ansible_facts['distribution_major_version'] == "7" or ansible_facts['distribution_major_version'] == "9"
         ignore_errors: true
         register: mpio_ver_el_7
       - debug:
           var: mpio_ver_el_7
+      - name: Verify Pkgs installed
+        yum:
+          list: "{{item}}"
+        with_items:
+          - net-tools
+          - bind-utils
+        register: nettools
+      - debug:
+          var: nettools
+      - name: Install nettools pkg
+        yum:
+          name: "{{item.item}}"
+          state: present
+        when: item.results | selectattr("yumstate", "match", "installed") | list | length == 0
+        with_items: "{{nettools.results}}"
       - name: View network configuration (IP address, subnet mask, gateway)
         shell: |
           echo "==========================="
           echo "# Interface configuration #"
+          echo "==========================="
           ifconfig
           echo "==========================="
           echo "# Netstat ports #"
+          echo "================="
           netstat -tuln
           echo "============================"
           echo "# IP direction and Routes #"
+          echo "==========================="
           ip route 
           echo "============================="
           echo "# Network interfaces and their configurations #"
+          echo "==============================================="
           ip a
           echo "==============================================="
         register: networking_info
@@ -47,17 +66,21 @@
           var: proc_info
       - name: Disk Info
         shell: |
-          echo "===================="
+          echo "==================="
           echo "# Disk partitions #"
+          echo "==================="
           df -h
           echo "======================================="
           echo "# View disk and partition information #"
+          echo "======================================="
           lsblk
           echo "======================================="
           echo "# View RAID information #"
+          echo "========================="
           cat /proc/mdstat
           echo "========================="
           echo "# View SCSI/SAS controller information #"
+          echo "========================================"
           lsscsi
           echo "========================================"
         register: diskinfo
@@ -69,12 +92,13 @@
           echo "# uname #"
           uname -a
           echo "=========="
-          echo "# Detailed system information #"
-          echo "==============================="
-          echo hostname
+          echo "# System information #"
+          echo "======================"
+          hostname
           cat /etc/os-release
-          echo "==============================="
+          echo "======================"
           echo "# View information about PCIe cards #"
+          echo "====================================="
           lspci
           echo "====================================="
         register: sysinfo
@@ -84,9 +108,11 @@
         shell: |
           echo "========================"
           echo "# View CPU information #"
+          echo "========================"
           lscpu
           echo "========================"
           echo "# View current memory usage #"
+          echo "============================="
           free -h
           echo "============================="
         register: cpu_mem_info
@@ -96,9 +122,11 @@
         shell: |
           echo "============================================="
           echo "# Show all apps/services running (RHEL 5/6) #"
+          echo "============================================="
           service --status-all
           echo "============================================="
           echo "# Show all apps/services running (RHEL 7/8) #"
+          echo "============================================="
           systemctl list-unit-files
           echo "============================================="
           echo "# Show all apps/services running (RHEL 8) #"
@@ -109,13 +137,21 @@
           var: svcs
       - name: "Show installed applications/packages"
         shell: |
-          echo "=========================================="
+          echo "========================================"
           echo "# Show installed applications/packages #"
+          echo "========================================"
           rpm -qa
-          echo "============================="
+          echo "========================================"
         register: pkgs_info
       - debug:
           var: pkgs_info
+      - name: "Host DNS"
+        shell: |
+          ip=`hostname --ip-address`
+          nslookup $ip
+        register: dns_info
+      - debug:
+          var: dns_info
       - name: Save outputs to local directory
         copy:
           content: "{{ item.output.stdout }}"
@@ -131,5 +167,6 @@
           - { name: cpu_mem_info , output: "{{cpu_mem_info}}" }
           - { name: services_info , output: "{{svcs}}" } 
           - { name: packages_apps_info , output: "{{pkgs_info}}" }
+          - { name: dns_info , output: "{{dns_info}}" }
         become: false
         delegate_to: localhost

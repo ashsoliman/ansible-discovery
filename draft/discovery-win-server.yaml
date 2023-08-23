@@ -1,0 +1,82 @@
+---
+- hosts: windowsservers
+  become: yes
+  tasks:
+  - name: Check MPIO 
+    win_powershell:
+      script: | 
+        Get-MPIOSetting
+  - name: Run PowerShell script that modifies the module changed result
+    ansible.windows.win_powershell:
+      script: |
+        if (Get-Service -Name test -ErrorAction SilentlyContinue) {
+            Remove-Service -Name test
+        }
+        else {
+            $Ansible.Changed = $false
+        }
+
+  - name: Run PowerShell script in PowerShell 7
+    ansible.windows.win_powershell:
+      script: |
+        $PSVersionTable.PSVersion.Major
+      executable: pwsh.exe
+      arguments:
+      - -ExecutionPolicy
+      - ByPass
+    register: pwsh_output
+    failed_when:
+    - pwsh_output.output[0] != 7
+
+  - name: Run code in check mode
+    ansible.windows.win_powershell:
+      script: |
+        [CmdletBinding(SupportsShouldProcess)]
+        param ()
+
+        # Use $Ansible to detect check mode
+        if ($Ansible.CheckMode) {
+            echo 'running in check mode'
+        }
+        else {
+            echo 'running in normal mode'
+        }
+
+        # Use builtin ShouldProcess (-WhatIf)
+        if ($PSCmdlet.ShouldProcess('target')) {
+            echo 'also running in normal mode'
+        }
+        else {
+            echo 'also running in check mode'
+        }
+    check_mode: yes
+
+  - name: Return a failure back to Ansible
+    ansible.windows.win_powershell:
+      script: |
+        if (Test-Path C:\bad.file) {
+            $Ansible.Failed = $true
+        }
+
+  - name: Define when the script made a change or not
+    ansible.windows.win_powershell:
+      script: |
+        if ((Get-Item WSMan:\localhost\Service\Auth\Basic).Value -eq 'true') {
+            Set-Item WSMan:\localhost\Service\Auth\Basic -Value false
+        }
+        else {
+            $Ansible.Changed = $true
+        }
+
+  - name: Define when to enable Verbose/Debug output
+    ansible.windows.win_powershell:
+      script: |
+        if ($Ansible.Verbosity -ge 3) {
+            $VerbosePreference = "Continue"
+        }
+        if ($Ansible.Verbosity -eq 5) {
+            $DebugPreference = "Continue"
+        }
+        Write-Output "Hello World!"
+        Write-Verbose "Hello World!"
+        Write-Debug "Hello World!"
