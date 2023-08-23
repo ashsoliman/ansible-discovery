@@ -22,6 +22,9 @@
         register: mpio_ver_el_7
       - debug:
           var: mpio_ver_el_7
+      #################################################################    
+      # New: Verify pkgs installed for netstats and nslookup commands #
+      #################################################################
       - name: Verify Pkgs installed
         yum:
           list: "{{item}}"
@@ -37,6 +40,7 @@
           state: present
         when: item.results | selectattr("yumstate", "match", "installed") | list | length == 0
         with_items: "{{nettools.results}}"
+      #################################################################
       - name: View network configuration (IP address, subnet mask, gateway)
         shell: |
           echo "==========================="
@@ -145,11 +149,15 @@
         register: pkgs_info
       - debug:
           var: pkgs_info
+      ###########################################################################
+      # New: Using nslookup to query the PTR record to confirm the DNS hostname #
+      ###########################################################################
       - name: "Host DNS"
         shell: |
           ip=`hostname --ip-address`
           nslookup $ip
         register: dns_info
+      ###################################
       - debug:
           var: dns_info
       - name: Save outputs to local directory
