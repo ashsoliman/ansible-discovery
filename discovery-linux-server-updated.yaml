@@ -151,6 +151,7 @@
           var: pkgs_info
       ###########################################################################
       # New: Using nslookup to query the PTR record to confirm the DNS hostname #
+      # This will work only if reverse lookup records is in place               #
       ###########################################################################
       - name: "Host DNS"
         shell: |
