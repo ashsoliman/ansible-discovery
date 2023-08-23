@@ -157,9 +157,9 @@
           ip=`hostname --ip-address`
           nslookup $ip
         register: dns_info
-      ###################################
       - debug:
           var: dns_info
+      ###################################
       - name: Save outputs to local directory
         copy:
           content: "{{ item.output.stdout }}"
