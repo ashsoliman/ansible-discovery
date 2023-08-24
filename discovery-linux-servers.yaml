@@ -4,7 +4,7 @@
       tasks:
       - name: Create local directory on jumpserver
         file:
-          path: "/oxxo/{{ inventory_hostname }}"
+          path: "/rsdiscovery/{{ inventory_hostname }}"
           state: directory
         delegate_to: localhost
         become: false
@@ -17,7 +17,7 @@
           var: mpio_ver_el_5_6
       - name: MPIO Red Hat Enterprise Linux 7 series
         command: systemctl status multipathd
-        when: ansible_facts['distribution_major_version'] == "7" or ansible_facts['distribution_major_version'] == "9"
+        when: ansible_facts['distribution_major_version'] == "7"
         ignore_errors: true
         register: mpio_ver_el_7
       - debug:
@@ -155,7 +155,7 @@
       - name: Save outputs to local directory
         copy:
           content: "{{ item.output.stdout }}"
-          dest: "/oxxo/{{inventory_hostname}}/{{ item.name }}.txt"
+          dest: "/rsdiscovery/{{inventory_hostname}}/{{ item.name }}.txt"
         when: item.output.stdout is defined
         with_items:
           - { name: mpio_ver_el_5_6 , output: "{{mpio_ver_el_5_6}}" }
@@ -182,7 +182,7 @@
       - name: Fetch netstat CSV
         fetch:
           src: /tmp/output.CSV
-          dest: "/oxxo/{{ inventory_hostname }}/"
+          dest: "/rsdiscovery/{{ inventory_hostname }}/"
           flat: yes
       - name: Cleanup netstat CSV from remote host
         file:
