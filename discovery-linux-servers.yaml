@@ -1,10 +1,12 @@
 ---
     - hosts: linuxservers
       become: yes
+      vars_files:
+        - vars.yaml
       tasks:
       - name: Create local directory on jumpserver
         file:
-          path: "/rsdiscovery/{{ inventory_hostname }}"
+          path: "{{ jump_server_dir }}/{{ inventory_hostname }}"
           state: directory
         delegate_to: localhost
         become: false
@@ -155,7 +157,7 @@
       - name: Save outputs to local directory
         copy:
           content: "{{ item.output.stdout }}"
-          dest: "/rsdiscovery/{{inventory_hostname}}/{{ item.name }}.txt"
+          dest: "{{ jump_server_dir }}/{{inventory_hostname}}/{{ item.name }}.txt"
         when: item.output.stdout is defined
         with_items:
           - { name: mpio_ver_el_5_6 , output: "{{mpio_ver_el_5_6}}" }
@@ -172,20 +174,24 @@
         delegate_to: localhost
       - name: Netstat script
         shell: |
-          LENGTH=5
+          set +x
+          LENGTH={{netstat_time_interval}}
           end=$((SECONDS+$LENGTH))
           # Set CSV Header
-          echo "Protocol,Recv-Q,Send-Q,Local Address,Foreign Address,State" > /tmp/output.CSV
+          echo "Protocol,Recv-Q,Send-Q,Local Address,Foreign Address,State" > {{ remote_host_dir }}/netstat.csv
           while [ $SECONDS -lt $end ]; do
-              netstat -tuln | awk 'NR>2 {print $1","$2","$3","$4","$5","$6}' >> /tmp/output.CSV
+              netstat -tuln | awk 'NR>2 {print $1","$2","$3","$4","$5","$6}' >> {{ remote_host_dir }}/netstat.csv
           done
+        register: netstat_script
+      - debug:
+          var: netstat_script
       - name: Fetch netstat CSV
         fetch:
-          src: /tmp/output.CSV
-          dest: "/rsdiscovery/{{ inventory_hostname }}/"
+          src: "{{ remote_host_dir }}/netstat.csv"
+          dest: "{{ jump_server_dir }}/{{ inventory_hostname }}/"
           flat: yes
       - name: Cleanup netstat CSV from remote host
         file:
-          path: /tmp/output.CSV
+          path: "{{ remote_host_dir }}/netstat.csv"
           state: absent
       

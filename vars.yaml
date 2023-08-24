@@ -1,0 +1,3 @@
+netstat_time_interval: 30
+jump_server_dir: "/linuxdiscovery"
+remote_host_dir: "/tmp"
