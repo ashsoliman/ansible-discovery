@@ -1,5 +1,5 @@
 ---
-    - hosts: all
+    - hosts: linuxservers
       become: yes
       tasks:
       - name: Create local directory on jumpserver
